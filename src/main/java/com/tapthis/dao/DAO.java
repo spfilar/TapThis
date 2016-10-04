@@ -16,10 +16,12 @@ public class DAO {
 	static ResultSet RES_SET_BEER = null;
 	static ResultSet RES_SET_BREWERY = null;
 	static ResultSet RES_SET_USER = null;
+	static ResultSet RES_SET_REVIEW = null;
 	
 	public static final ArrayList<BeerInfo> myBeers = new ArrayList<>();
 	public static final ArrayList<BreweryInfo> myBreweries = new ArrayList<>();
 	public static final ArrayList<UserInfo> myUsers = new ArrayList<>();
+	public static final ArrayList<ReviewInfo> myReviews = new ArrayList<>();
 	
 	public static void connectToSQL() {
 		
@@ -61,6 +63,9 @@ public class DAO {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	} //readFromBeerTable 
+	
+	public static void readFromBreweryTable() {
 		
 		try {
 			STMT = CONN.createStatement();
@@ -83,7 +88,7 @@ public class DAO {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-	} //readFromBeerTable method
+	} //readFromBreweryTable method
 	
 	public static void readFromUserTable() {
 		
@@ -91,7 +96,7 @@ public class DAO {
 		
 		try {
 			STMT = CONN.createStatement();
-		//	RES_SET = STMT.executeQuery(SELECT statement from database);
+			RES_SET_USER = STMT.executeQuery("SELECT * FROM greg_and_the_beards.user_table;");
 			
 			while (RES_SET_USER.next()) {
 				
@@ -113,6 +118,33 @@ public class DAO {
 			e.printStackTrace();
 		}
 	} //readFromUserTable method
+	
+	public static void readFromReviewTable() {
+		
+		connectToSQL();
+		
+		try {
+			STMT = CONN.createStatement();
+			RES_SET_REVIEW = STMT.executeQuery("SELECT * FROM greg_and_the_beards.beer_review");
+			
+			while (RES_SET_REVIEW.next()) {
+				
+				ReviewInfo reviewInDB = new ReviewInfo();
+				
+				reviewInDB.setUserID(RES_SET_REVIEW.getInt("id_review"));
+				reviewInDB.setBeerID(RES_SET_REVIEW.getInt("beer_id"));
+				reviewInDB.setUserID(RES_SET_REVIEW.getInt("user_id"));
+				reviewInDB.setOverallRating(RES_SET_REVIEW.getInt("beer_rating_overall_quality"));
+				reviewInDB.setHopsRating(RES_SET_REVIEW.getInt("hops_rating"));
+				reviewInDB.setMaltRating(RES_SET_REVIEW.getInt("malt_rating"));
+				reviewInDB.setReviewComment(RES_SET_REVIEW.getString("review_comment"));
+				reviewInDB.setReviewAddedDate(RES_SET_REVIEW.getString("review_date_time_added"));
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	} //readFromReviewTable
 	
 	public static void writeToBeerTable(BeerInfo beer) {
 		
@@ -186,6 +218,29 @@ public class DAO {
 		}
 	} //writeToUserTable method
 	
+	public static void writeToReviewTable(ReviewInfo review) {
+		
+		try {
+			connectToSQL();
+			
+			PREP_STMT = CONN.prepareStatement("INSERT INTO `greg_and_the_beards`.`beer_review`"
+					+ "(`beer_id`, `user_id`, `beer_rating_overall_quality`, `hops_rating`, `malt_rating`,"
+					+ " `review_comment`, `review_date_time_added`) VALUES (?, ?, ?, ?, ?, ?, ?)");
+			
+			PREP_STMT.setInt(1, review.getBeerID());
+			PREP_STMT.setInt(2, review.getUserID());
+			PREP_STMT.setInt(3, review.getOverallRating());
+			PREP_STMT.setInt(4, review.getHopsRating());
+			PREP_STMT.setInt(5, review.getMaltRating());
+			PREP_STMT.setString(6, review.getReviewComment());
+			PREP_STMT.setString(7, review.getReviewAddedDate());
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+	} //writeToReviewTable
+	
 	public static void updateUserFromTable(UserInfo user) {
 		
 		try {
@@ -210,6 +265,26 @@ public class DAO {
 		}
 	} //updateUserTable method
 	
+	public static void updateReviewFromTable(ReviewInfo review) {
+		
+		try {
+			connectToSQL();
+			
+			PREP_STMT = CONN.prepareStatement("UPDATE `greg_and_the_beards`.`beer_review` SET "
+					+ "`beer_rating_overall_quality` = ?, `hops_rating` = ?, `malt_rating` = ?, `review_comment` = ?");
+			
+			PREP_STMT.setInt(1, review.getOverallRating());
+			PREP_STMT.setInt(2, review.getHopsRating());
+			PREP_STMT.setInt(3, review.getMaltRating());
+			PREP_STMT.setString(4, review.getReviewComment());
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	} //updateReviewTable method
+	
 	public static void deleteUserFromTable(UserInfo user) {
 		
 		try {
@@ -223,5 +298,21 @@ public class DAO {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-	}
+	} //deleteUserFromTable method
+	
+	public static void deleteReviewFromTable(ReviewInfo review) {
+		
+		try {
+			connectToSQL();
+			
+			PREP_STMT = CONN.prepareStatement("DELETE FROM `greg_and_the_beards`.`beer_review`"
+						+ "WHERE `id_review` = ?");
+			PREP_STMT.setInt(1, review.getReviewID());
+			PREP_STMT.executeQuery();
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	} //deleteReviewFromTable method
 }
